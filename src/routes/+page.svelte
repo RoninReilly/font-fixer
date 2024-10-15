@@ -27,14 +27,16 @@
   let isProcessing = false;
   let showMetricsModal = false;
   let currentMetrics: { original: any, fixed: any } | null = null;
-  let theme: 'white' | 'g10' | 'g90' | 'g100' = 'white';
+  let isDarkMode = false;
 
   onMount(() => {
     if (browser) {
       const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-      theme = prefersDark ? 'g100' : 'white';
+      isDarkMode = prefersDark;
     }
   });
+
+  $: theme = isDarkMode ? 'g100' : 'white';
 
   async function handleFilesUpload(files: File[]) {
     if (browser) {
@@ -166,8 +168,7 @@
       <Column>
         <Toggle 
           labelText="Dark mode" 
-          bind:toggled={theme} 
-          on:toggle={() => theme = theme === 'white' ? 'g100' : 'white'} 
+          bind:toggled={isDarkMode}
         />
       </Column>
     </Row>
