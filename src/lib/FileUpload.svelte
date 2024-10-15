@@ -14,7 +14,7 @@
 
 {#if browser}
   <FileUploaderDropContainer
-    labelText="Перетащи сюда файлы шрифтов или кликни для выбора"
+    labelText="Drag and drop the font files here or click to select"
     accept={['.ttf', '.otf']}
     multiple
     on:change={handleFilesSelect}
