@@ -40,11 +40,6 @@ To run this project locally:
 2. Install dependencies: `npm install`
 3. Run the development server: `npm run dev`
 
-## 📚 Learn More
-
-- [Understanding Font Metrics](https://link-to-article)
-- [Why Consistent Font Rendering Matters](https://link-to-article)
-- [Cross-Platform Font Development](https://link-to-article)
 
 
 Keywords: font metrics, vertical metrics, font fixing, cross-platform fonts, iOS fonts, macOS fonts, Windows fonts, Android fonts, Firefox fonts, font consistency, typography, web fonts, font rendering, ascent, descent, line gap, font tools
