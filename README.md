@@ -1,38 +1,50 @@
-# create-svelte
+# Font Metrics Fixer
 
-Everything you need to build a Svelte project, powered by [`create-svelte`](https://github.com/sveltejs/kit/tree/main/packages/create-svelte).
+Fix font vertical metrics across all platforms - iOS, macOS, Windows, Android, and Firefox.
 
-## Creating a project
+## 🚀 Features
 
-If you're seeing this, you've probably already done this step. Congrats!
+- Automatically adjusts Ascent, Descent, LineGap, and other crucial metrics
+- Supports multiple font uploads (TTF, OTF)
+- Instant preview of original vs. fixed metrics
+- Download individual fixed fonts or all as a ZIP
+- Ensures consistent font appearance across different operating systems and browsers
 
-```bash
-# create a new project in the current directory
-npm create svelte@latest
+## 🎯 Why Use Font Metrics Fixer?
 
-# create a new project in my-app
-npm create svelte@latest my-app
-```
+Inconsistent font metrics can lead to layout issues, varying line heights, and inconsistent text rendering across different platforms. This tool solves these problems by:
 
-## Developing
+- Aligning vertical metrics (OS/2, hhea, head tables)
+- Setting appropriate values for usWinAscent and usWinDescent
+- Ensuring consistent line spacing across all major platforms
 
-Once you've created a project and installed dependencies with `npm install` (or `pnpm install` or `yarn`), start a development server:
+## 🛠 How It Works
 
-```bash
-npm run dev
+1. Upload your font file(s)
+2. Our algorithm analyzes and adjusts the following metrics:
+   - OS/2: typoAscender, typoDescender, typoLineGap, usWinAscent, usWinDescent
+   - hhea: ascender, descender, lineGap
+   - head: yMax, yMin
+3. Preview the changes
+4. Download your fixed font(s)
 
-# or start the server and open the app in a new browser tab
-npm run dev -- --open
-```
+## 🚀 Getting Started
 
-## Building
+Visit [Font Metrics Fixer](https://your-vercel-url.com) to start fixing your fonts now!
 
-To create a production version of your app:
+## 🤓 For Developers
 
-```bash
-npm run build
-```
+To run this project locally:
 
-You can preview the production build with `npm run preview`.
+1. Clone the repository
+2. Install dependencies: `npm install`
+3. Run the development server: `npm run dev`
 
-> To deploy your app, you may need to install an [adapter](https://kit.svelte.dev/docs/adapters) for your target environment.
+## 📚 Learn More
+
+- [Understanding Font Metrics](https://link-to-article)
+- [Why Consistent Font Rendering Matters](https://link-to-article)
+- [Cross-Platform Font Development](https://link-to-article)
+
+
+Keywords: font metrics, vertical metrics, font fixing, cross-platform fonts, iOS fonts, macOS fonts, Windows fonts, Android fonts, Firefox fonts, font consistency, typography, web fonts, font rendering, ascent, descent, line gap, font tools
