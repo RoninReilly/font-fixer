@@ -15,10 +15,17 @@
     InlineLoading,
     Modal,
     Theme,
-    Toggle
+    Toggle,
+    Header,
+    HeaderUtilities,
+    HeaderAction,
+    SkipToContent,
+    HeaderGlobalAction
   } from "carbon-components-svelte";
   import Download from "carbon-icons-svelte/lib/Download.svelte";
   import Information from "carbon-icons-svelte/lib/Information.svelte";
+  import Light from "carbon-icons-svelte/lib/Light.svelte";
+  import Asleep from "carbon-icons-svelte/lib/Asleep.svelte";
 
   let fixedFonts: { [filename: string]: ArrayBuffer } = {};
   let originalMetrics: { [filename: string]: any } = {};
@@ -156,71 +163,80 @@
 </svelte:head>
 
 <Theme bind:theme>
-<Content>
-  <Grid>
-    <Row>
-      <Column>
-        <h1>Font Metrics Fixer</h1>
-        <p>Fix vertical metrics for consistent rendering across all platforms</p>
-      </Column>
-    </Row>
-    <Row>
-      <Column>
-        <Toggle 
-          labelText="Dark mode" 
-          bind:toggled={isDarkMode}
-        />
-      </Column>
-    </Row>
-    <Row>
-      <Column>
-        <FileUpload onFilesUpload={handleFilesUpload} />
-      </Column>
-    </Row>
-    {#if isProcessing}
+  <Header platformName="Font Metrics Fixer">
+    <svelte:fragment slot="skip-to-content">
+      <SkipToContent />
+    </svelte:fragment>
+    <HeaderUtilities>
+      <HeaderGlobalAction 
+        aria-label="Toggle dark mode" 
+        icon={isDarkMode ? Light : Asleep} 
+        on:click={() => isDarkMode = !isDarkMode}
+      />
+    </HeaderUtilities>
+  </Header>
+
+  <Content>
+    <Grid>
       <Row>
         <Column>
-          <InlineLoading description="Processing files..." />
+          <h1>Font Metrics Fixer</h1>
+          <p>Fix vertical metrics for consistent rendering across all platforms</p>
         </Column>
       </Row>
-    {/if}
-    {#if Object.keys(fixedFonts).length > 0}
       <Row>
         <Column>
-          <Button icon={Download} on:click={handleDownloadAll}>Download all fixed fonts (ZIP)</Button>
+          <FileUpload onFilesUpload={handleFilesUpload} />
         </Column>
       </Row>
-    {/if}
-    {#each Object.entries(fixedFonts) as [filename, _]}
-      <Row>
-        <Column>
-          <Tile>
-            <div class="font-item">
-              <span>{filename}</span>
-              <div>
-                <Button 
-                  kind="ghost" 
-                  icon={Information} 
-                  iconDescription="Show metrics"
-                  on:click={() => showMetrics(filename)}
-                />
-                <Button 
-                  kind="ghost" 
-                  icon={Download} 
-                  iconDescription="Download font"
-                  on:click={() => handleDownload(filename)}
-                />
+      {#if isProcessing}
+        <Row>
+          <Column>
+            <InlineLoading description="Processing files..." />
+          </Column>
+        </Row>
+      {/if}
+      {#if Object.keys(fixedFonts).length > 0}
+        <Row>
+          <Column>
+            <Button icon={Download} on:click={handleDownloadAll}>Download all fixed fonts (ZIP)</Button>
+          </Column>
+        </Row>
+      {/if}
+      {#each Object.entries(fixedFonts) as [filename, _]}
+        <Row>
+          <Column>
+            <Tile>
+              <div class="font-item">
+                <span>{filename}</span>
+                <div>
+                  <Button 
+                    kind="ghost" 
+                    icon={Information} 
+                    iconDescription="Show metrics"
+                    on:click={() => showMetrics(filename)}
+                  />
+                  <Button 
+                    kind="ghost" 
+                    icon={Download} 
+                    iconDescription="Download font"
+                    on:click={() => handleDownload(filename)}
+                  />
+                </div>
               </div>
-            </div>
-            {#if errorMessages[filename]}
-              <div class="error">{errorMessages[filename]}</div>
-            {/if}
-          </Tile>
-        </Column>
-      </Row>
-    {/each}
-  </Grid>
-</Content>
+              {#if errorMessages[filename]}
+                <div class="error">{errorMessages[filename]}</div>
+              {/if}
+            </Tile>
+          </Column>
+        </Row>
+      {/each}
+    </Grid>
+  </Content>
+
+  <footer>
+    <p>Created by <a href="https://phlora.ru" target="_blank" rel="noopener noreferrer">phlora.ru</a> | Contact: <a href="https://t.me/roninreilly" target="_blank" rel="noopener noreferrer">t.me/roninreilly</a></p>
+  </footer>
 </Theme>
 
 <Modal
@@ -245,6 +261,17 @@
 </Modal>
 
 <style>
+  :global(body) {
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+  }
+
+  :global(.bx--content) {
+    flex: 1 0 auto;
+    margin-top: 3rem;
+  }
+
   h1 {
     margin-bottom: 0.5rem;
   }
@@ -276,5 +303,17 @@
   pre {
     white-space: pre-wrap;
     word-wrap: break-word;
+  }
+
+  footer {
+    text-align: center;
+    padding: 1rem;
+    margin-top: 2rem;
+    background-color: var(--cds-ui-background);
+    color: var(--cds-text-01);
+  }
+
+  footer a {
+    color: var(--cds-link-01);
   }
 </style>
