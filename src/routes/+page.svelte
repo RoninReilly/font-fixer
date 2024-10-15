@@ -24,8 +24,12 @@
   } from "carbon-components-svelte";
   import Download from "carbon-icons-svelte/lib/Download.svelte";
   import Information from "carbon-icons-svelte/lib/Information.svelte";
+  import LogoGithub from "carbon-icons-svelte/lib/LogoGithub.svelte";
   import Light from "carbon-icons-svelte/lib/Light.svelte";
   import Asleep from "carbon-icons-svelte/lib/Asleep.svelte";
+  import AboutMetrics from '$lib/AboutMetrics.svelte';
+  import { inject } from '@vercel/analytics'
+
 
   let fixedFonts: { [filename: string]: ArrayBuffer } = {};
   let originalMetrics: { [filename: string]: any } = {};
@@ -169,6 +173,13 @@
     </svelte:fragment>
     <HeaderUtilities>
       <HeaderGlobalAction 
+        aria-label="GitHub Repository"
+        icon={LogoGithub}
+        href="https://github.com/RoninReilly/font-fixer"
+        target="_blank"
+        rel="noopener noreferrer"
+      />
+      <HeaderGlobalAction 
         aria-label="Toggle dark mode" 
         icon={isDarkMode ? Light : Asleep} 
         on:click={() => isDarkMode = !isDarkMode}
@@ -186,57 +197,74 @@
       </Row>
       <Row>
         <Column>
-          <FileUpload onFilesUpload={handleFilesUpload} />
+          <div class="upload-container">
+            <FileUpload onFilesUpload={handleFilesUpload} />
+          </div>
         </Column>
       </Row>
       {#if isProcessing}
         <Row>
           <Column>
-            <InlineLoading description="Processing files..." />
+            <div class="processing-container">
+              <InlineLoading description="Processing files..." />
+            </div>
           </Column>
         </Row>
       {/if}
       {#if Object.keys(fixedFonts).length > 0}
         <Row>
           <Column>
-            <Button icon={Download} on:click={handleDownloadAll}>Download all fixed fonts (ZIP)</Button>
+            <div class="download-all-container">
+              <Button icon={Download} on:click={handleDownloadAll}>Download all fixed fonts (ZIP)</Button>
+            </div>
           </Column>
         </Row>
       {/if}
       {#each Object.entries(fixedFonts) as [filename, _]}
         <Row>
           <Column>
-            <Tile>
-              <div class="font-item">
-                <span>{filename}</span>
-                <div>
-                  <Button 
-                    kind="ghost" 
-                    icon={Information} 
-                    iconDescription="Show metrics"
-                    on:click={() => showMetrics(filename)}
-                  />
-                  <Button 
-                    kind="ghost" 
-                    icon={Download} 
-                    iconDescription="Download font"
-                    on:click={() => handleDownload(filename)}
-                  />
+            <div class="font-item-container">
+              <Tile>
+                <div class="font-item">
+                  <span>{filename}</span>
+                  <div>
+                    <Button 
+                      kind="ghost" 
+                      icon={Information} 
+                      iconDescription="Show metrics"
+                      on:click={() => showMetrics(filename)}
+                    />
+                    <Button 
+                      kind="ghost" 
+                      icon={Download} 
+                      iconDescription="Download font"
+                      on:click={() => handleDownload(filename)}
+                    />
+                  </div>
                 </div>
-              </div>
-              {#if errorMessages[filename]}
-                <div class="error">{errorMessages[filename]}</div>
-              {/if}
-            </Tile>
+                {#if errorMessages[filename]}
+                  <div class="error">{errorMessages[filename]}</div>
+                {/if}
+              </Tile>
+            </div>
           </Column>
         </Row>
       {/each}
+      <Row>
+        <Column>
+          <AboutMetrics />
+        </Column>
+      </Row>
     </Grid>
   </Content>
 
-  <footer>
-    <p>Created by <a href="https://phlora.ru" target="_blank" rel="noopener noreferrer">phlora.ru</a> | Contact: <a href="https://t.me/roninreilly" target="_blank" rel="noopener noreferrer">t.me/roninreilly</a></p>
-  </footer>
+ <footer>
+  <p>
+    Created by <a href="https://phlora.ru" target="_blank" rel="noopener noreferrer">phlora.ru</a> | 
+    Contact: <a href="https://t.me/roninreilly" target="_blank" rel="noopener noreferrer">t.me/roninreilly</a> | 
+    <a href="https://github.com/RoninReilly/font-fixer" target="_blank" rel="noopener noreferrer">GitHub Repository</a>
+  </p>
+</footer>
 </Theme>
 
 <Modal
@@ -278,6 +306,22 @@
 
   p {
     margin-bottom: 2rem;
+  }
+
+  .upload-container {
+    margin-bottom: 2rem;
+  }
+
+  .processing-container {
+    margin: 2rem 0;
+  }
+
+  .download-all-container {
+    margin: 2rem 0;
+  }
+
+  .font-item-container {
+    margin-bottom: 1rem;
   }
 
   .font-item {

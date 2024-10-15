@@ -4,12 +4,13 @@
 
   export let onFilesUpload: (files: File[]) => void;
 
-  function handleFilesSelect(e: CustomEvent<File[]>) {
-    const files = e.detail;
-    if (files.length > 0) {
-      onFilesUpload(files);
-    }
+  function handleFilesSelect(e: CustomEvent<readonly File[]>) {
+  const files = Array.from(e.detail); 
+  if (files.length > 0) {
+    onFilesUpload(files);
   }
+}
+
 </script>
 
 {#if browser}
