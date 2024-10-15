@@ -30,7 +30,7 @@ Inconsistent font metrics can lead to layout issues, varying line heights, and i
 
 ## 🚀 Getting Started
 
-Visit [Font Metrics Fixer](https://your-vercel-url.com) to start fixing your fonts now!
+Visit [Font Metrics Fixer](fonts-fixer.vercel.app) to start fixing your fonts now!
 
 ## 🤓 For Developers
 
