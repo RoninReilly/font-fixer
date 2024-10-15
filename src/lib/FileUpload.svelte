@@ -20,5 +20,5 @@
     on:change={handleFilesSelect}
   />
 {:else}
-  <p>Загрузка компонента...</p>
+  <p>Loadding...</p>
 {/if}
