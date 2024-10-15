@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { onMount } from 'svelte';
   import { browser } from '$app/environment';
   import FileUpload from '$lib/FileUpload.svelte';
   import { fixFont } from '$lib/fontFixer';
@@ -11,10 +12,10 @@
     Column, 
     Button,
     Tile,
-    OverflowMenu,
-    OverflowMenuItem,
     InlineLoading,
-    Modal
+    Modal,
+    Theme,
+    Toggle
   } from "carbon-components-svelte";
   import Download from "carbon-icons-svelte/lib/Download.svelte";
   import Information from "carbon-icons-svelte/lib/Information.svelte";
@@ -26,6 +27,14 @@
   let isProcessing = false;
   let showMetricsModal = false;
   let currentMetrics: { original: any, fixed: any } | null = null;
+  let theme: 'white' | 'g10' | 'g90' | 'g100' = 'white';
+
+  onMount(() => {
+    if (browser) {
+      const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+      theme = prefersDark ? 'g100' : 'white';
+    }
+  });
 
   async function handleFilesUpload(files: File[]) {
     if (browser) {
@@ -50,8 +59,8 @@
 
           errorMessages[file.name] = null;
         } catch (error) {
-          console.error(`Ошибка при исправлении шрифта ${file.name}:`, error);
-          errorMessages[file.name] = `Произошла ошибка при обработке шрифта: ${error.message}`;
+          console.error(`Error fixing font ${file.name}:`, error);
+          errorMessages[file.name] = `An error occurred while processing the font: ${error.message}`;
         }
       }
       fixedFonts = fixedFonts;
@@ -138,11 +147,28 @@
   }
 </script>
 
+<svelte:head>
+  <title>Font Metrics Fixer - Fix Vertical Metrics for Cross-Platform Consistency</title>
+  <meta name="description" content="Automatically fix font vertical metrics for consistent rendering across iOS, macOS, Windows, Android, and Firefox. Upload, fix, and download perfectly adjusted fonts.">
+  <meta name="keywords" content="font metrics, vertical metrics, font fixing, cross-platform fonts, iOS fonts, macOS fonts, Windows fonts, Android fonts, Firefox fonts, font consistency, typography, web fonts, font rendering, ascent, descent, line gap, font tools">
+</svelte:head>
+
+<Theme bind:theme>
 <Content>
   <Grid>
     <Row>
       <Column>
-        <h1>Исправление метрик шрифта</h1>
+        <h1>Font Metrics Fixer</h1>
+        <p>Fix vertical metrics for consistent rendering across all platforms</p>
+      </Column>
+    </Row>
+    <Row>
+      <Column>
+        <Toggle 
+          labelText="Dark mode" 
+          bind:toggled={theme} 
+          on:toggle={() => theme = theme === 'white' ? 'g100' : 'white'} 
+        />
       </Column>
     </Row>
     <Row>
@@ -153,14 +179,14 @@
     {#if isProcessing}
       <Row>
         <Column>
-          <InlineLoading description="Обработка файлов..." />
+          <InlineLoading description="Processing files..." />
         </Column>
       </Row>
     {/if}
     {#if Object.keys(fixedFonts).length > 0}
       <Row>
         <Column>
-          <Button icon={Download} on:click={handleDownloadAll}>Скачать все исправленные шрифты (ZIP)</Button>
+          <Button icon={Download} on:click={handleDownloadAll}>Download all fixed fonts (ZIP)</Button>
         </Column>
       </Row>
     {/if}
@@ -174,13 +200,13 @@
                 <Button 
                   kind="ghost" 
                   icon={Information} 
-                  iconDescription="Показать метрики"
+                  iconDescription="Show metrics"
                   on:click={() => showMetrics(filename)}
                 />
                 <Button 
                   kind="ghost" 
                   icon={Download} 
-                  iconDescription="Скачать шрифт"
+                  iconDescription="Download font"
                   on:click={() => handleDownload(filename)}
                 />
               </div>
@@ -194,22 +220,23 @@
     {/each}
   </Grid>
 </Content>
+</Theme>
 
 <Modal
   open={showMetricsModal}
-  modalHeading="Метрики шрифта"
-  primaryButtonText="Закрыть"
+  modalHeading="Font Metrics"
+  primaryButtonText="Close"
   on:close={() => showMetricsModal = false}
   on:submit={() => showMetricsModal = false}
 >
   {#if currentMetrics}
     <div class="metrics-comparison">
       <div>
-        <h3>Оригинальные метрики</h3>
+        <h3>Original Metrics</h3>
         <pre>{JSON.stringify(currentMetrics.original, null, 2)}</pre>
       </div>
       <div>
-        <h3>Исправленные метрики</h3>
+        <h3>Fixed Metrics</h3>
         <pre>{JSON.stringify(currentMetrics.fixed, null, 2)}</pre>
       </div>
     </div>
@@ -217,11 +244,11 @@
 </Modal>
 
 <style>
-  :global(body) {
-    background-color: #f4f4f4;
-  }
-  
   h1 {
+    margin-bottom: 0.5rem;
+  }
+
+  p {
     margin-bottom: 2rem;
   }
 
