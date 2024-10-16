@@ -1,54 +1,74 @@
-import { browser } from '$app/environment';
-import opentype from 'opentype.js';
+import * as opentype from 'opentype.js';
+import { Buffer } from 'buffer';
 
-export async function fixFont(file: File): Promise<ArrayBuffer> {
-  if (!browser) {
-    throw new Error('This function can only be used in the browser');
-  }
+interface FontMetrics {
+  ascender: number;
+  descender: number;
+  lineGap: number;
+  unitsPerEm: number;
+}
 
-  return new Promise((resolve, reject) => {
-    const reader = new FileReader();
-    reader.onload = async (event) => {
-      if (event.target?.result instanceof ArrayBuffer) {
-        try {
-          const font = opentype.parse(event.target.result);
+export async function fixFontMetrics(fontBuffer: ArrayBuffer): Promise<ArrayBuffer> {
+  const font = opentype.parse(fontBuffer);
+  const originalMetrics = getOriginalMetrics(font);
+  const fixedMetrics = calculateFixedMetrics(originalMetrics);
 
-          // Используем существующие значения ascender и descender из hhea
-          const ascender = font.tables.hhea.ascender;
-          const descender = font.tables.hhea.descender;
+  applyFixedMetrics(font, fixedMetrics);
 
-          // Обновляем таблицу OS/2
-          font.tables.os2.sTypoAscender = ascender;
-          font.tables.os2.sTypoDescender = descender;
-          font.tables.os2.sTypoLineGap = 0;
-          font.tables.os2.usWinAscent = Math.abs(ascender);
-          font.tables.os2.usWinDescent = Math.abs(descender);
+  return font.toArrayBuffer();
+}
 
-          // Обновляем таблицу hhea (только lineGap)
-          font.tables.hhea.lineGap = 0;
+function getOriginalMetrics(font: opentype.Font): FontMetrics {
+  const os2 = font.tables.os2;
+  const hhea = font.tables.hhea;
 
-          // Обновляем таблицу head
-          font.tables.head.yMax = Math.max(ascender, font.tables.head.yMax);
-          font.tables.head.yMin = Math.min(descender, font.tables.head.yMin);
+  return {
+    ascender: hhea.ascender,
+    descender: hhea.descender,
+    lineGap: hhea.lineGap,
+    unitsPerEm: font.unitsPerEm
+  };
+}
 
-          console.log('Updated font metrics:', {
-            os2: font.tables.os2,
-            hhea: font.tables.hhea,
-            head: font.tables.head
-          });
+function calculateFixedMetrics(originalMetrics: FontMetrics): FontMetrics {
+  const ascender = Math.round(originalMetrics.unitsPerEm * 0.8);
+  const descender = Math.round(originalMetrics.unitsPerEm * -0.2);
+  const lineGap = 0;
 
-          // Сохранение исправленного шрифта
-          const fixedFontArrayBuffer = font.toArrayBuffer();
-          resolve(fixedFontArrayBuffer);
-        } catch (error) {
-          console.error('Error fixing font:', error);
-          reject(error);
-        }
-      } else {
-        reject(new Error('Не удалось прочитать файл'));
-      }
-    };
-    reader.onerror = (error) => reject(error);
-    reader.readAsArrayBuffer(file);
-  });
+  return {
+    ascender,
+    descender,
+    lineGap,
+    unitsPerEm: originalMetrics.unitsPerEm
+  };
+}
+
+function applyFixedMetrics(font: opentype.Font, metrics: FontMetrics): void {
+  const os2 = font.tables.os2;
+  const hhea = font.tables.hhea;
+  const head = font.tables.head;
+
+  // Update OS/2 table
+  os2.sTypoAscender = metrics.ascender;
+  os2.sTypoDescender = metrics.descender;
+  os2.sTypoLineGap = metrics.lineGap;
+  os2.usWinAscent = metrics.ascender;
+  os2.usWinDescent = Math.abs(metrics.descender);
+
+  // Update hhea table
+  hhea.ascender = metrics.ascender;
+  hhea.descender = metrics.descender;
+  hhea.lineGap = metrics.lineGap;
+
+  // Update head table
+  head.yMax = metrics.ascender;
+  head.yMin = metrics.descender;
+}
+
+export function getMetricsInfo(fontBuffer: ArrayBuffer): { original: FontMetrics; fixed: FontMetrics } {
+  const font = opentype.parse(fontBuffer);
+  const originalMetrics = getOriginalMetrics(font);
+  const fixedMetrics = calculateFixedMetrics(originalMetrics);
+
+  return { original: originalMetrics, fixed: fixedMetrics };
 }

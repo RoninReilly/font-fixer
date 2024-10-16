@@ -1,0 +1,31 @@
+h1 {
+  margin-bottom: 0.5rem;
+}
+
+p {
+  margin-bottom: 2rem;
+}
+
+.upload-container {
+  margin-bottom: 2rem;
+}
+
+.processing-container {
+  margin: 2rem 0;
+}
+
+.download-all-container {
+  margin: 2rem 0;
+}
+
+footer {
+  text-align: center;
+  padding: 1rem;
+  margin-top: 2rem;
+  background-color: var(--cds-ui-background);
+  color: var(--cds-text-01);
+}
+
+footer a {
+  color: var(--cds-link-01);
+}

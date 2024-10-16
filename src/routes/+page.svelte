@@ -2,7 +2,8 @@
   import { onMount } from 'svelte';
   import { browser } from '$app/environment';
   import FileUpload from '$lib/FileUpload.svelte';
-  import { fixFont } from '$lib/fontFixer';
+  import { fixFontMetrics } from '$lib/fontFixer';
+  import { getMetrics } from '$lib/utils';
   import opentype from 'opentype.js';
   import JSZip from 'jszip';
   import { 
@@ -11,25 +12,24 @@
     Row, 
     Column, 
     Button,
-    Tile,
     InlineLoading,
-    Modal,
     Theme,
-    Toggle,
     Header,
     HeaderUtilities,
-    HeaderAction,
+    HeaderGlobalAction,
     SkipToContent,
-    HeaderGlobalAction
+    Tabs,
+    Tab,
+    TabContent
   } from "carbon-components-svelte";
   import Download from "carbon-icons-svelte/lib/Download.svelte";
-  import Information from "carbon-icons-svelte/lib/Information.svelte";
   import LogoGithub from "carbon-icons-svelte/lib/LogoGithub.svelte";
   import Light from "carbon-icons-svelte/lib/Light.svelte";
   import Asleep from "carbon-icons-svelte/lib/Asleep.svelte";
   import AboutMetrics from '$lib/AboutMetrics.svelte';
-  import { inject } from '@vercel/analytics'
-
+  import MetricsModal from '$lib/MetricsModal.svelte';
+  import FontItem from '$lib/FontItem.svelte';
+  import { inject } from '@vercel/analytics';
 
   let fixedFonts: { [filename: string]: ArrayBuffer } = {};
   let originalMetrics: { [filename: string]: any } = {};
@@ -39,15 +39,20 @@
   let showMetricsModal = false;
   let currentMetrics: { original: any, fixed: any } | null = null;
   let isDarkMode = false;
+  let selectedTab = 0;
+  let theme: 'white' | 'g100' = 'white';
 
   onMount(() => {
     if (browser) {
       const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
       isDarkMode = prefersDark;
+      theme = isDarkMode ? 'g100' : 'white';
     }
   });
 
-  $: theme = isDarkMode ? 'g100' : 'white';
+  $: {
+    theme = isDarkMode ? 'g100' : 'white';
+  }
 
   async function handleFilesUpload(files: File[]) {
     if (browser) {
@@ -62,7 +67,7 @@
           originalMetrics[file.name] = getMetrics(originalFont);
           console.log('Original metrics:', originalMetrics[file.name]);
 
-          const fixedFontBuffer = await fixFont(file);
+          const fixedFontBuffer = await fixFontMetrics(arrayBuffer);
           fixedFonts[file.name] = fixedFontBuffer;
           console.log('Font fixed');
           
@@ -70,10 +75,10 @@
           fixedMetrics[file.name] = getMetrics(fixedFontParsed);
           console.log('Fixed metrics:', fixedMetrics[file.name]);
 
-          errorMessages[file.name] = null;
+          errorMessages[file.name] = '';
         } catch (error) {
           console.error(`Error fixing font ${file.name}:`, error);
-          errorMessages[file.name] = `An error occurred while processing the font: ${error.message}`;
+          errorMessages[file.name] = `An error occurred while processing the font: ${(error as Error).message}`;
         }
       }
       fixedFonts = fixedFonts;
@@ -81,41 +86,6 @@
       fixedMetrics = fixedMetrics;
       errorMessages = errorMessages;
       isProcessing = false;
-    }
-  }
-
-  function getMetrics(font: any) {
-    try {
-      return {
-        unitsPerEm: font.unitsPerEm || 0,
-        ascender: font.ascender || 0,
-        descender: font.descender || 0,
-        lineGap: font.tables.hhea?.lineGap || 0,
-        os2: {
-          sTypoAscender: font.tables.os2?.sTypoAscender || 0,
-          sTypoDescender: font.tables.os2?.sTypoDescender || 0,
-          sTypoLineGap: font.tables.os2?.sTypoLineGap || 0,
-          usWinAscent: font.tables.os2?.usWinAscent || 0,
-          usWinDescent: font.tables.os2?.usWinDescent || 0,
-        },
-        hhea: {
-          ascender: font.tables.hhea?.ascender || 0,
-          descender: font.tables.hhea?.descender || 0,
-          lineGap: font.tables.hhea?.lineGap || 0,
-        },
-        head: {
-          yMax: font.tables.head?.yMax || 0,
-          yMin: font.tables.head?.yMin || 0,
-        }
-      };
-    } catch (error) {
-      console.error('Error getting metrics:', error);
-      return {
-        unitsPerEm: 0, ascender: 0, descender: 0, lineGap: 0,
-        os2: { sTypoAscender: 0, sTypoDescender: 0, sTypoLineGap: 0, usWinAscent: 0, usWinDescent: 0 },
-        hhea: { ascender: 0, descender: 0, lineGap: 0 },
-        head: { yMax: 0, yMin: 0 }
-      };
     }
   }
 
@@ -188,176 +158,89 @@
   </Header>
 
   <Content>
-    <Grid>
-      <Row>
-        <Column>
-          <h1>Font Metrics Fixer</h1>
-          <p>Fix vertical metrics for consistent rendering across all platforms</p>
-        </Column>
-      </Row>
-      <Row>
-        <Column>
-          <div class="upload-container">
-            <FileUpload onFilesUpload={handleFilesUpload} />
-          </div>
-        </Column>
-      </Row>
-      {#if isProcessing}
-        <Row>
-          <Column>
-            <div class="processing-container">
-              <InlineLoading description="Processing files..." />
-            </div>
-          </Column>
-        </Row>
-      {/if}
-      {#if Object.keys(fixedFonts).length > 0}
-        <Row>
-          <Column>
-            <div class="download-all-container">
-              <Button icon={Download} on:click={handleDownloadAll}>Download all fixed fonts (ZIP)</Button>
-            </div>
-          </Column>
-        </Row>
-      {/if}
-      {#each Object.entries(fixedFonts) as [filename, _]}
-        <Row>
-          <Column>
-            <div class="font-item-container">
-              <Tile>
-                <div class="font-item">
-                  <span>{filename}</span>
-                  <div>
-                    <Button 
-                      kind="ghost" 
-                      icon={Information} 
-                      iconDescription="Show metrics"
-                      on:click={() => showMetrics(filename)}
-                    />
-                    <Button 
-                      kind="ghost" 
-                      icon={Download} 
-                      iconDescription="Download font"
-                      on:click={() => handleDownload(filename)}
-                    />
+    <Tabs bind:selected={selectedTab}>
+      <Tab label="Font Converter" />
+      <Tab label="Font Metrics Fixer" />
+      <svelte:fragment slot="content">
+        <TabContent>
+          {#if selectedTab === 0}
+            <Grid>
+              <Row>
+                <Column>
+                  <h1>Font Converter</h1>
+                  <p>Convert your fonts to different formats</p>
+                  <!-- Add font converter functionality here -->
+                </Column>
+              </Row>
+            </Grid>
+          {:else if selectedTab === 1}
+            <Grid>
+              <Row>
+                <Column>
+                  <h1>Font Metrics Fixer</h1>
+                  <p>Fix vertical metrics for consistent rendering across all platforms</p>
+                </Column>
+              </Row>
+              <Row>
+                <Column>
+                  <div class="upload-container">
+                    <FileUpload onFilesUpload={handleFilesUpload} />
                   </div>
-                </div>
-                {#if errorMessages[filename]}
-                  <div class="error">{errorMessages[filename]}</div>
-                {/if}
-              </Tile>
-            </div>
-          </Column>
-        </Row>
-      {/each}
-      <Row>
-        <Column>
-          <AboutMetrics />
-        </Column>
-      </Row>
-    </Grid>
+                </Column>
+              </Row>
+              {#if isProcessing}
+                <Row>
+                  <Column>
+                    <div class="processing-container">
+                      <InlineLoading description="Processing files..." />
+                    </div>
+                  </Column>
+                </Row>
+              {/if}
+              {#if Object.keys(fixedFonts).length > 0}
+                <Row>
+                  <Column>
+                    <div class="download-all-container">
+                      <Button icon={Download} on:click={handleDownloadAll}>Download all fixed fonts (ZIP)</Button>
+                    </div>
+                  </Column>
+                </Row>
+              {/if}
+              {#each Object.entries(fixedFonts) as [filename, _]}
+                <Row>
+                  <Column>
+                    <FontItem
+                      {filename}
+                      errorMessage={errorMessages[filename]}
+                      onShowMetrics={() => showMetrics(filename)}
+                      onDownload={() => handleDownload(filename)}
+                    />
+                  </Column>
+                </Row>
+              {/each}
+              <Row>
+                <Column>
+                  <AboutMetrics />
+                </Column>
+              </Row>
+            </Grid>
+          {/if}
+        </TabContent>
+      </svelte:fragment>
+    </Tabs>
   </Content>
 
- <footer>
-  <p>
-    Created by <a href="https://phlora.ru" target="_blank" rel="noopener noreferrer">phlora.ru</a> | 
-    Contact: <a href="https://t.me/roninreilly" target="_blank" rel="noopener noreferrer">t.me/roninreilly</a> | 
-    <a href="https://github.com/RoninReilly/font-fixer" target="_blank" rel="noopener noreferrer">GitHub Repository</a>
-  </p>
-</footer>
+  <footer>
+    <p>
+      Created by <a href="https://phlora.ru" target="_blank" rel="noopener noreferrer">phlora.ru</a> | 
+      Contact: <a href="https://t.me/roninreilly" target="_blank" rel="noopener noreferrer">t.me/roninreilly</a> | 
+      <a href="https://github.com/RoninReilly/font-fixer" target="_blank" rel="noopener noreferrer">GitHub Repository</a>
+    </p>
+  </footer>
 </Theme>
 
-<Modal
-  open={showMetricsModal}
-  modalHeading="Font Metrics"
-  primaryButtonText="Close"
-  on:close={() => showMetricsModal = false}
-  on:submit={() => showMetricsModal = false}
->
-  {#if currentMetrics}
-    <div class="metrics-comparison">
-      <div>
-        <h3>Original Metrics</h3>
-        <pre>{JSON.stringify(currentMetrics.original, null, 2)}</pre>
-      </div>
-      <div>
-        <h3>Fixed Metrics</h3>
-        <pre>{JSON.stringify(currentMetrics.fixed, null, 2)}</pre>
-      </div>
-    </div>
-  {/if}
-</Modal>
+<MetricsModal bind:showModal={showMetricsModal} {currentMetrics} />
 
 <style>
-  :global(body) {
-    display: flex;
-    flex-direction: column;
-    min-height: 100vh;
-  }
-
-  :global(.bx--content) {
-    flex: 1 0 auto;
-    margin-top: 3rem;
-  }
-
-  h1 {
-    margin-bottom: 0.5rem;
-  }
-
-  p {
-    margin-bottom: 2rem;
-  }
-
-  .upload-container {
-    margin-bottom: 2rem;
-  }
-
-  .processing-container {
-    margin: 2rem 0;
-  }
-
-  .download-all-container {
-    margin: 2rem 0;
-  }
-
-  .font-item-container {
-    margin-bottom: 1rem;
-  }
-
-  .font-item {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-  }
-
-  .error {
-    color: #da1e28;
-    margin-top: 1rem;
-  }
-
-  .metrics-comparison {
-    display: flex;
-    justify-content: space-between;
-  }
-
-  .metrics-comparison > div {
-    width: 48%;
-  }
-
-  pre {
-    white-space: pre-wrap;
-    word-wrap: break-word;
-  }
-
-  footer {
-    text-align: center;
-    padding: 1rem;
-    margin-top: 2rem;
-    background-color: var(--cds-ui-background);
-    color: var(--cds-text-01);
-  }
-
-  footer a {
-    color: var(--cds-link-01);
-  }
+  @import './styles.css';
 </style>
