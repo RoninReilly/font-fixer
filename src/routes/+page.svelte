@@ -28,8 +28,7 @@
   import Light from "carbon-icons-svelte/lib/Light.svelte";
   import Asleep from "carbon-icons-svelte/lib/Asleep.svelte";
   import AboutMetrics from '$lib/AboutMetrics.svelte';
-  import { inject } from '@vercel/analytics'
-
+  import { inject } from '@vercel/analytics';
 
   let fixedFonts: { [filename: string]: ArrayBuffer } = {};
   let originalMetrics: { [filename: string]: any } = {};
@@ -44,6 +43,7 @@
     if (browser) {
       const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
       isDarkMode = prefersDark;
+      inject(); // Initialize Vercel Analytics
     }
   });
 
@@ -162,7 +162,7 @@
 
 <svelte:head>
   <title>Font Metrics Fixer - Fix Vertical Metrics for Cross-Platform Consistency</title>
-  <meta name="description" content="Automatically fix font vertical metrics for consistent rendering across iOS, macOS, Windows, Android, and Firefox. Upload, fix, and download perfectly adjusted fonts.">
+  <meta name="description" content="Automatically fix font vertical metrics for consistent rendering across iOS, macOS, Windows, Android, and Firefox. Vertical metrics determine the baseline in a text and the space between lines of text. Different sets are used depending on the font, operating system, and application.">
   <meta name="keywords" content="font metrics, vertical metrics, font fixing, cross-platform fonts, iOS fonts, macOS fonts, Windows fonts, Android fonts, Firefox fonts, font consistency, typography, web fonts, font rendering, ascent, descent, line gap, font tools">
 </svelte:head>
 

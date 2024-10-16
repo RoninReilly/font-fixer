@@ -18,6 +18,14 @@ Inconsistent font metrics can lead to layout issues, varying line heights, and i
 - Setting appropriate values for usWinAscent and usWinDescent
 - Ensuring consistent line spacing across all major platforms
 
+## 📏 Understanding Vertical Metrics
+
+Vertical metrics determine the baseline in a text and the space between lines of text. There are three pairs of ascender/descender values: hhea, OS/2, and usWin metrics. Different sets are used depending on the font, operating system, and application.
+
+- **Mac**: Safari and Chrome use the hhea values to render text. Firefox respects the useTypoMetrics setting and uses the OS/2 values if set; otherwise, it uses hhea metrics.
+
+- **Windows**: All browsers use the usWin metrics but respect the useTypoMetrics setting, using OS/2 values if set.
+
 ## 🛠 How It Works
 
 1. Upload your font file(s)
@@ -39,7 +47,5 @@ To run this project locally:
 1. Clone the repository
 2. Install dependencies: `npm install`
 3. Run the development server: `npm run dev`
-
-
 
 Keywords: font metrics, vertical metrics, font fixing, cross-platform fonts, iOS fonts, macOS fonts, Windows fonts, Android fonts, Firefox fonts, font consistency, typography, web fonts, font rendering, ascent, descent, line gap, font tools
